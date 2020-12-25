@@ -1,3 +1,19 @@
+const VOID_TAGS = [
+	// List from: https://riptutorial.com/html/example/4736/void-elements
+	'area',
+	'base',
+	'br',
+	'hr',
+	'img',
+	'input',
+	'link',
+	'meta',
+	'param',
+	'command',
+	'keygen',
+	'source'
+];
+
 export default function parse_html(input) {
 	const root = { children: [] };
 	function pull(regex, handler = () => {}) {
@@ -15,13 +31,22 @@ export default function parse_html(input) {
 		let run = true;
 		while (run && input.length > 0) {
 			// Parse an open tag
-			const success = pull(/^<([a-zA-Z][a-zA-Z0-9\-]*)>/, tag => {
+			const success = pull(/^<([a-zA-Z][a-zA-Z0-9\-]*)/, tag => {
 				const new_tag = { tag, attributes: {}, children: [] };
 				cursor.children.push(new_tag);
-				parse_content(new_tag);
-			}) ||
+				parse_attributes(new_tag);
+				if (!VOID_TAGS.includes(tag.toLowerCase())) {
+					parse_content(new_tag);
+				}
+			})
+			// Parse a comment node:
+			|| pull(/^<!--((?:[^-]|-(?!->))*)-->/, comment => {
+				cursor.children.push({
+					comment
+				})
+			})
 			// Parse close tag
-			pull(/^<\/([a-zA-Z][a-zA-Z0-9\-]*)>/, tag => {
+			|| pull(/^<\/([a-zA-Z][a-zA-Z0-9\-]*)>/, tag => {
 				if (cursor.tag !== tag) {
 					throw new Error("Unmatched close tag");
 				}
@@ -36,6 +61,17 @@ export default function parse_html(input) {
 			if (!success) {
 				throw new Error("Parse error");
 			}
+		}
+	}
+	function parse_attributes(cursor) {
+		while(pull(/^\s+([a-zA-Z][a-zA-Z0-9\-]+)="([^"]*)"/, (
+			name,
+			value
+		) => {
+			cursor.attributes[name] = value;
+		})) {}
+		if (!pull(/^\s*>/)) {
+			throw new Error("Malformed open tag");
 		}
 	}
 	parse_content(root);
