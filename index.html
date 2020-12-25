@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>How to parse HTML with Regular Expressions</title>
+	</head>
+	<body>
+		<style>
+			tr.succeeded {
+				background-color: green;
+			}
+			tr.failed {
+				background-color: red;
+			}
+		</style>
+		<table id="tests"></table>
+		<script type="module">
+			import tests, { check_test } from './tests.mjs';
+			import parse_html from './parser.mjs';
+
+			const test_table = document.getElementById("tests");
+
+			for (const [input, expected] of tests) {
+				let result;
+				let passed;
+				try {
+					result = parse_html(input);
+					passed = check_test(result, expected);
+				} catch (e) {
+					passed = false;
+				}
+
+				const in_el = document.createElement('pre');
+				in_el.innerText = input;
+
+				const row = test_table.insertRow(-1);
+				if (passed) {
+					row.classList.add('succeeded');
+				} else {
+					row.classList.add('failed');
+				}
+				row.insertCell(-1).appendChild(in_el);
+				row.insertCell(-1).innerText = JSON.stringify(result);
+			}
+		</script>
+	</body>
+</html>

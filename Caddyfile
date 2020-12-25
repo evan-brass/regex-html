@@ -1,0 +1,15 @@
+localhost {
+	encode gzip zstd
+
+	# Setup mime types:
+	@mjs_mime {
+		path *.mjs
+	}
+	@js_mime {
+		path *.js
+	}
+	header @mjs_mime +Content-Type Application/ECMAScript; charset=utf-8
+	header @js_mime +Content-Type Application/JavaScript; charset=utf-8
+
+	file_server browse
+}
