@@ -1,8 +1,8 @@
 # How to parse HTML with Regular Expressions
-I'll be using JavaScript here. With it we can write this in <100 lines of code.
+I'll be using JavaScript here.  With it we can write this in <100 lines of code.
 
 ## Harness
-We'll start by laying out our code. I'll be using closures, but you could - and my first version did - use a class instead. We'll need a `parse_html` function, and inside we'll put a helper function called `pull` and a `parse_content` function which we'll fill in later.
+We'll start by laying out our code.  I'll be using closures, but you could - and my first version did - use a class instead.  We'll need a `parse_html` function, and inside we'll put a helper function called `pull` and a `parse_content` function which we'll fill in later.
 
 If you'd like to follow along, the code and some tests are available here: https://github.com/evan-brass/regex-html
 
@@ -59,7 +59,9 @@ function parse_content(cursor) {
 }
 ```
 
-Since our pull function returns a boolean, we can use short circuit evaluation to chain calls to pull and stop when one consumes some input. It's kinda like choice in parser combinators.
+Since our pull function returns a boolean, we can use short circuit evaluation to chain calls to pull and stop when one consumes some input.  It's kinda like choice in parser combinators.
+
+One complication of using this pull function is not being able to break out of the loop, which is why there's this silly run variable.
 
 This get's us past our first test which doesn't have any text nodes:
 ```html
@@ -109,7 +111,7 @@ pull(/^<([a-zA-Z][a-zA-Z0-9\-]*)/, tag => {
 })
 ```
 
-And then we'll write our `parse_attributes` function. Please excuse the wacky while loop:
+And then we'll write our `parse_attributes` function.  Please excuse the wacky while loop:
 ```javascript
 function parse_attributes(cursor) {
 	while(pull(/^\s+([a-zA-Z][a-zA-Z0-9\-]+)="([^"]*)"/, (
@@ -130,7 +132,7 @@ This gets us past our 3rd test:
 ```
 
 # Comment Nodes
-The 4th test includes a Comment node which makes us dust off our negative lookaheads. We'll just put the following after the open tag in `parse_content`:
+The 4th test includes a Comment node which makes us dust off our negative lookaheads.  We'll just put the following after the open tag in `parse_content`:
 
 ```javascript
 // Parse a comment node:
@@ -153,7 +155,7 @@ Another test down:
 ```
 
 ## Void tags
-In HTML there are some tags which cannot have children. They're known as void tags and there's a list of them here: https://riptutorial.com/html/example/4736/void-elements To handle void tags we'll just skip parsing child content if the tag name is a void tag:
+In HTML there are some tags which cannot have children.  They're known as void tags and there's a list of them here: https://riptutorial.com/html/example/4736/void-elements To handle void tags we'll just skip parsing child content if the tag name is a void tag:
 
 ```javascript
 const VOID_TAGS = [
@@ -195,11 +197,9 @@ And with that, our tests give us a clean bill of health.
 
 ## Conclusion
 Congratulations! You just built a recursive descent parser for a simplified version of HTML!
-The moral of this story is that parsing non-regular languages is pretty small step once you understand regular languages.
+The moral of this story is that parsing non-regular languages is a pretty small step once you understand regular languages.  The first time I heard "You can't parse HTML with regular expressions" I thought I must need some completely different thing, so I thought I'd write this for people like my former self.
 
-We did simplify HTML a lot to make our parser easier though. To be complete you'd need to handle `<!Doctypes >`, SVG, escape sequences, attributes that aren't surrounded with quotation marks, and you'd probably want your browser to handle websites that relied on bugs in previous HTML parsers or websites that just have broken HTML in a graceful way.  You'd probably also want to provide helpful error messages
-
-The moral of the story is that building parsers isn't too hard, and just because you can't parse HTML with a *single* regular expression, that doesn't mean you can't use regular expressions in your parser.
+We did simplify HTML a lot to make our parser easier though.  To be complete you'd need to handle `<!doctypes >`, SVG, escape sequences, attributes that aren't surrounded with quotation marks, and you'd probably want your browser to handle websites in a graceful way that relied on bugs in previous HTML parsers or websites that just have broken HTML.  You'd probably also want to provide helpful error messages.
 
 ---
 
